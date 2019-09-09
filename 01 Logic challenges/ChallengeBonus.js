@@ -18,7 +18,9 @@ var NumOfNum;
 process.stdin.setEncoding('utf8');
 var rl = readline.createInterface({
   input: process.stdin,
-  terminal: false
+  output: process.stdout,
+  terminal: true,
+  prompt: '> '
 });
 
 rl.on('line', readLine);
