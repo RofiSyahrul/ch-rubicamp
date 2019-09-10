@@ -2,22 +2,22 @@ sqlite3 university.db
 PRAGMA foreign_keys = ON;
 CREATE TABLE jurusan(
     id_jurusan  INT PRIMARY KEY         NOT NULL,
-    nama_jurusan            CHAR(15)    NOT NULL
+    nama_jurusan            VARCHAR(15)    NOT NULL
 );
 CREATE TABLE mahasiswa(
     nim         INT PRIMARY KEY         NOT NULL,
-    nama                    CHAR(30)    NOT NULL,
+    nama                    VARCHAR(30)    NOT NULL,
     alamat                  TEXT,
     id_jurusan              INT         NOT NULL,
     FOREIGN KEY(id_jurusan) REFERENCES  jurusan(id_jurusan)
 );
 CREATE TABLE dosen(
     id_dosen  INT PRIMARY   KEY         NOT NULL,
-    nama                    CHAR(30)    NOT NULL
+    nama                    VARCHAR(30)    NOT NULL
 );
 CREATE TABLE matakuliah(
     id_matakuliah  INT PRIMARY   KEY         NOT NULL,
-    nama                         CHAR(30)    NOT NULL,
+    nama                         VARCHAR(30)    NOT NULL,
     sks                          INT         NOT NULL
 );
 CREATE TABLE kontrak(
@@ -25,7 +25,7 @@ CREATE TABLE kontrak(
     nim                         INT         NOT NULL,
     id_matakuliah               INT         NOT NULL,
     id_dosen                    INT         NOT NULL,
-    nilai                       INT,
+    nilai                       CHAR(2),
     FOREIGN KEY(nim)            REFERENCES  mahasiswa(nim),
     FOREIGN KEY(id_matakuliah)  REFERENCES  matakuliah(id_matakuliah),
     FOREIGN KEY(id_dosen)       REFERENCES  dosen(id_dosen)
@@ -69,15 +69,15 @@ INSERT INTO matakuliah VALUES (10, "Model Risiko", 3);
 INSERT INTO matakuliah VALUES (11, "Pengantar Biokimia", 3);
 INSERT INTO matakuliah VALUES (12, "Sepakbola untuk Profesional", 2);
 
-INSERT INTO kontrak VALUES (1,10119004,2,4,60);
-INSERT INTO kontrak VALUES (2,10119004,3,2,70);
-INSERT INTO kontrak VALUES (3,10119007,1,1,80);
-INSERT INTO kontrak VALUES (4,10119007,12,2,75);
-INSERT INTO kontrak VALUES (5,10119007,9,5,45);
-INSERT INTO kontrak VALUES (6,10119010,2,4,85);
-INSERT INTO kontrak VALUES (7,10119010,8,3,65);
-INSERT INTO kontrak VALUES (8,10219008,4,6,51);
-INSERT INTO kontrak VALUES (9,10219008,10,5,66);
-INSERT INTO kontrak VALUES (10,10219008,7,4,80);
-INSERT INTO kontrak VALUES (11,10219012,5,1,90);
-INSERT INTO kontrak VALUES (12,10219012,6,6,40);
+INSERT INTO kontrak VALUES (1,10119004,2,4,"C");
+INSERT INTO kontrak VALUES (2,10119004,3,2,"B");
+INSERT INTO kontrak VALUES (3,10119007,1,1,"A");
+INSERT INTO kontrak VALUES (4,10119007,12,2,"B");
+INSERT INTO kontrak VALUES (5,10119007,9,5,"D");
+INSERT INTO kontrak VALUES (6,10119010,2,4,"BL");
+INSERT INTO kontrak VALUES (7,10119010,8,3,"C");
+INSERT INTO kontrak VALUES (8,10219008,4,6,"C");
+INSERT INTO kontrak VALUES (9,10219008,10,5,"C");
+INSERT INTO kontrak VALUES (10,10219008,7,4,"A");
+INSERT INTO kontrak VALUES (11,10219012,5,1,"A");
+INSERT INTO kontrak VALUES (12,10219012,6,6,"D");
