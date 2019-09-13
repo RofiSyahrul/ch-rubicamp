@@ -6,10 +6,11 @@ export class View extends EventEmitter {
         this.model = model;
         this.model.on('tableLoaded',table=>this.loadTable(table));
         this.model.on('recordFound',table=>this.showRecord(table));
+        this.model.on('recordAdded',table=>this.addRecord(table));
         this.rl = rl;
-        this.rl.on('line',answer=>{
-            this.emit('showMenu',answer);
-        });
+        // this.rl.on('line',answer=>{
+        //     this.emit('showMenu',answer);
+        // });
         this.decorator = '='.repeat(75);
         this.main = ['Mahasiswa','Jurusan','Dosen','Matakuliah','Kontrak','Keluar'];
         this.mainMenu = this.main.map((x,id)=>`[${id+1}] ${x}`);
@@ -41,6 +42,7 @@ export class View extends EventEmitter {
             }else if (key==='Keluar'){
                 console.log(this.decorator);
                 console.log('Kamu telah keluar.');
+                this.model.db.close();
                 process.exit();
             }else{
                 console.log(this.decorator);
@@ -48,26 +50,26 @@ export class View extends EventEmitter {
                 console.log(menu.includes(key) ? this.breadMenu[key].join('\n') : this.mainMenu.join('\n'));
                 console.log(this.decorator);
                 if (key){
-                    // BREAD menu for key (Mahasiswa, Jurusan, etc)
+                    // BREAD menu for Mahasiswa, Jurusan, etc
                     this.rl.question('Masukkan salah satu nomor dari opsi di atas: ',answer=>{
                         answer = parseInt(answer);
-                        if (answer.toString()==='NaN'){
-                            console.log('Masukan salah.');
-                            this.emit('showMenu',key);
-                        } else {
-                            switch(answer){
-                                case 1: this.emit('showData',key); break;
-                                case 2: 
-                                    console.log(this.decorator); this.emit('getData', key); 
-                                    break;
-                                case 5: this.emit('showMenu'); break; // back to main menu
-                                default: this.emit('showMenu',key);
-                            }
+                        switch(answer){
+                            case 1: this.emit('showData',key); break;
+                            case 2: 
+                                console.log(this.decorator); this.emit('getData', key); 
+                                break;
+                            case 3:
+                                console.log(this.decorator);
+                                console.log('Lengkapi data di bawah ini:');
+                                this.emit('addData', key);
+                                break;
+                            case 5: this.emit('showMenu'); break; // back to main menu
+                            default: console.log('Masukan salah.'); this.emit('showMenu',key);
                         }
                     });
                 }else{
                     // main menu
-                    this.rl.prompt();
+                    this.rl.question('Masukkan salah satu nomor dari opsi di atas: ',answer=>this.showMenu(answer));
                 }
             }
         }
@@ -90,6 +92,24 @@ export class View extends EventEmitter {
             }else{
                 this.emit('showMenu',table);
             }
-        })
+        });
+    }
+
+    addRecord(table=''){
+        this.model.promise.then((obj)=>{
+            if (obj.toString()==='[object Database]'){
+                // Record was added to 'table' in database and 'obj' is a database object.
+                // So, it's time to update 'db' property of model with 'obj'
+                this.model.db = obj;
+                // and then show new table
+                this.emit('showData',table);
+            }else{
+                // Record doesn't meet the conditions.
+                // So, 'obj' is a string object, instead of a database object.
+                console.log(obj);
+                // Consequently, this app asks again to the user to input added record.
+                this.emit('addData',table);
+            }
+        });
     }
 }

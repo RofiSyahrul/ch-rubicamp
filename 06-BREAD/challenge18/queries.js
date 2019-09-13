@@ -8,169 +8,194 @@ export class Query {
         this.db = database;
     }
     
-    mahasiswa(resolve,action='read',...args){
+    mahasiswa(resolve,reject,action='read',...args){
         switch(action){
             case 'read':
-                this.db.all('SELECT * FROM mahasiswa ORDER BY nim;',(err,rows)=>{
-                    if (err) throw err;
-                    // instantiate table
-                    let table = new Table({
-                        head: ['NIM', 'Nama', 'Alamat', 'Jurusan']
-                    });
-                    // add table content based on result of query
-                    table.push.apply(table,rows.map(row=>[row.nim,row.nama,row.alamat,row.id_jurusan]));
-                    resolve(table.toString());
-                });
+                this.getTable(resolve,reject,'nim','mahasiswa',['NIM','Nama','Alamat','Jurusan']);
                 break;
             case 'search':
-                this.db.all('SELECT * FROM mahasiswa WHERE nim=?',args[0],(err,rows)=>{
-                    if (err) throw err;
-                    if (rows.length==0){
-                        resolve(`Mahasiswa dengan NIM ${args[0]} tidak ditemukan.`);
-                    }else{
-                        const arrStr = ['NIM','Nama','Alamat','Jurusan'];
-                        const str = decorator('student') + Query.generateInfo(arrStr, rows);
-                        resolve(str);
-                    }
-                });
+                this.getRecord(resolve, reject, 'nim', args[0], 'mahasiswa', ['NIM','Nama','Alamat','Jurusan'], 'Student');
                 break;
             case 'add':
+                let info = args[0];
+                const nim = info[0], dept = info[3];
+                // create promise to get existing id_jurusan from 'jurusan' table
+                const getIdJurusan = new Promise((res,rej)=>this.getId(res,rej,'id_jurusan','jurusan'));
+                // create promise to get existing nim from 'mahasiswa' table
+                const getNim = new Promise((res,rej)=>this.getId(res,rej,'nim','mahasiswa'));
+                // call all promises and add 'info' to 'mahasiswa' table if it meets the conditions.
+                Promise.all([getIdJurusan,getNim]).then((arrays)=>{
+                    const deptIds = arrays[0], nims = arrays[1];
+                    if (!deptIds.includes(dept)) resolve(`Tidak ada jurusan dengan ID ${dept}.`);
+                    else if (nims.includes(nim)) resolve(`NIM ${nim} sudah ada.`);
+                    else {
+                        info = info.join(', ');
+                        this.db.run(`INSERT INTO mahasiswa VALUES (${info});`);
+                        resolve(this.db);
+                    }
+                });
                 break;
             case 'del':
                 break;
         }
     }
     
-    jurusan(resolve,action='read',...args){
+    jurusan(resolve,reject,action='read',...args){
         switch(action){
             case 'read':
-                this.db.all('SELECT * FROM jurusan ORDER BY id_jurusan;',(err,rows)=>{
-                    if (err) throw err;
-                    // instantiate table
-                    let table = new Table({
-                        head: ['Kode','Jurusan']
-                    });
-                    // add table content based on result of query
-                    table.push.apply(table,rows.map(row=>[row.id_jurusan,row.nama_jurusan]));
-                    resolve(table.toString());
-                });
+                this.getTable(resolve,reject,'id_jurusan','jurusan',['Kode','Jurusan']);
                 break;
             case 'search':
-                this.db.all('SELECT * FROM jurusan WHERE id_jurusan=?',args[0],(err,rows)=>{
-                    if (err) throw err;
-                    if (rows.length==0){
-                        resolve(`Jurusan dengan kode ${args[0]} tidak ditemukan.`);
-                    }else{
-                        const arrStr = ['Kode jurusan','Nama jurusan'];
-                        const str = decorator('department') + Query.generateInfo(arrStr, rows);
-                        resolve(str);
-                    }
-                });
+                this.getRecord(resolve, reject, 'id_jurusan', args[0], 'jurusan', ['Kode jurusan','Nama jurusan'], 'Department');
                 break;
             case 'add':
+                let info = args[0];
+                const dept = info[0];
+                // create promise to get existing id_jurusan from 'jurusan' table
+                const getIdJurusan = new Promise((res,rej)=>this.getId(res,rej,'id_jurusan','jurusan'));
+                // call promise and add 'info' to 'jurusan' table if it meets the condition.
+                getIdJurusan.then((deptIds)=>{
+                    if (deptIds.includes(dept)) resolve(`Jurusan dengan kode ${dept} sudah ada.`);
+                    else {
+                        info = info.join(', ');
+                        this.db.run(`INSERT INTO jurusan VALUES (${info});`);
+                        resolve(this.db);
+                    }
+                });
                 break;
             case 'del':
                 break;
         }
     }
 
-    dosen(resolve,action='read',...args){
+    dosen(resolve,reject,action='read',...args){
         switch(action){
             case 'read':
-                this.db.all('SELECT * FROM dosen ORDER BY id_dosen;',(err,rows)=>{
-                    if (err) throw err;
-                    // instantiate table
-                    let table = new Table({
-                        head: ['ID', 'Nama']
-                    });
-                    // add table content based on result of query
-                    table.push.apply(table,rows.map(row=>[row.id_dosen,row.nama]));
-                    resolve(table.toString());
-                });
+                this.getTable(resolve,reject,'id_dosen','dosen',['ID','Nama']);
                 break;
             case 'search':
-                this.db.all('SELECT * FROM dosen WHERE id_dosen=?',args[0],(err,rows)=>{
-                    if (err) throw err;
-                    if (rows.length==0){
-                        resolve(`Dosen dengan ID ${args[0]} tidak ditemukan.`);
-                    }else{
-                        const arrStr = ['ID','Nama'];
-                        const str = decorator('lecturer') + Query.generateInfo(arrStr, rows);
-                        resolve(str);
-                    }
-                });
+                this.getRecord(resolve, reject, 'id_dosen', args[0], 'dosen', ['ID','Nama'],'Lecturer');
                 break;
             case 'add':
+                let info = args[0];
+                const lecturer = info[0];
+                // create promise to get existing id_dosen from 'dosen' table
+                const getIdDosen = new Promise((res,rej)=>this.getId(res,rej,'id_dosen','dosen'));
+                // call promise and add 'info' to 'dosen' table if it meets the condition.
+                getIdDosen.then((lectIds)=>{
+                    if (lectIds.includes(lecturer)) resolve(`Dosen dengan ID ${lecturer} sudah ada.`);
+                    else {
+                        info = info.join(', ');
+                        this.db.run(`INSERT INTO dosen VALUES (${info});`);
+                        resolve(this.db);
+                    }
+                });
                 break;
             case 'del':
                 break;
         }
     }
     
-    matakuliah(resolve,action='read',...args){
+    matakuliah(resolve,reject,action='read',...args){
         switch(action){
             case 'read':
-                this.db.all('SELECT * FROM matakuliah ORDER BY id_matakuliah;',(err,rows)=>{
-                    if (err) throw err;
-                    // instantiate table
-                    let table = new Table({
-                        head: ['ID', 'Matakuliah', 'SKS']
-                    });
-                    // add table content based on result of query
-                    table.push.apply(table,rows.map(row=>[row.id_matakuliah,row.nama,row.sks]));
-                    resolve(table.toString());
-                });
+                this.getTable(resolve,reject,'id_matakuliah','matakuliah',['ID', 'Matakuliah', 'SKS']);
                 break;
             case 'search':
-                this.db.all('SELECT * FROM matakuliah WHERE id_matakuliah=?',args[0],(err,rows)=>{
-                    if (err) throw err;
-                    if (rows.length==0){
-                        resolve(`Matakuliah dengan ID ${args[0]} tidak ditemukan.`);
-                    }else{
-                        const arrStr = ['ID', 'Matakuliah', 'SKS'];
-                        const str = decorator('subject') + Query.generateInfo(arrStr, rows);
-                        resolve(str);
-                    }
-                });
+                this.getRecord(resolve, reject, 'id_matakuliah', args[0], 'matakuliah', ['ID', 'Matakuliah', 'SKS'], 'Subject');
                 break;
             case 'add':
+                let info = args[0];
+                const subject = info[0];
+                // create promise to get existing id_matakuiah from 'matakuliah' table
+                const getIdSubject = new Promise((res,rej)=>this.getId(res,rej,'id_matakuliah','matakuliah'));
+                // call promise and add 'info' to 'matakuliah' table if it meets the condition.
+                getIdSubject.then((idSubjects)=>{
+                    if (idSubjects.includes(subject)) resolve(`Matakuliah dengan ID ${subject} sudah ada.`);
+                    else {
+                        info = info.join(', ');
+                        this.db.run(`INSERT INTO matakuliah VALUES (${info});`);
+                        resolve(this.db);
+                    }
+                });
                 break;
             case 'del':
                 break;
         }
     }
     
-    kontrak(resolve,action='read',...args){
+    kontrak(resolve,reject,action='read',...args){
         switch(action){
             case 'read':
-                this.db.all('SELECT * FROM kontrak ORDER BY id_kontrak;',(err,rows)=>{
-                    if (err) throw err;
-                    // instantiate table
-                    let table = new Table({
-                        head: ['ID', 'NIM', 'ID Matakuliah', 'ID Dosen', 'Nilai']
-                    });
-                    // add table content based on result of query
-                    table.push.apply(table,rows.map(row=>[row.id_kontrak,row.nim,row.id_matakuliah,row.id_dosen,row.nilai]));
-                    resolve(table.toString());
-                });
+                this.getTable(resolve,reject,'id_kontrak','kontrak',['ID', 'NIM', 'ID Matakuliah', 'ID Dosen', 'Nilai']);
                 break;
             case 'search':
-                this.db.all('SELECT * FROM kontrak WHERE id_kontrak=?',args[0],(err,rows)=>{
-                    if (err) throw err;
-                    if (rows.length==0){
-                        resolve(`Kontrak dengan ID ${args[0]} tidak ditemukan.`);
-                    }else{
-                        const arrStr = ['ID', 'NIM', 'ID Matakuliah', 'ID Dosen', 'Nilai'];
-                        const str = decorator('contract') + Query.generateInfo(arrStr, rows);
-                        resolve(str);
-                    }
-                });
+                this.getRecord(resolve, reject, 'id_kontrak', args[0], 'kontrak', ['ID', 'NIM', 'ID Matakuliah', 'ID Dosen', 'Nilai'], 'Contract');
                 break;
             case 'add':
+                let info = args[0];
+                const contract = info[0], nim = info[1], subject = info[2], lecturer = info[3];
+                // create promise to get existing id_kontrak from 'kontrak' table
+                const getIdContract = new Promise((res,rej)=>this.getId(res,rej,'id_kontrak','kontrak'));
+                // create promise to get existing nim from 'mahasiswa' table
+                const getNim = new Promise((res,rej)=>this.getId(res,rej,'nim','mahasiswa'));
+                // create promise to get existing id_dosen from 'dosen' table
+                const getIdDosen = new Promise((res,rej)=>this.getId(res,rej,'id_dosen','dosen'));
+                // create promise to get existing id_matakuiah from 'matakuliah' table
+                const getIdSubject = new Promise((res,rej)=>this.getId(res,rej,'id_matakuliah','matakuliah'));
+                // call all promises and add 'info' to 'kontrak' table if it meets the conditions.
+                Promise.all([getIdContract,getNim,getIdDosen,getIdSubject]).then((arrays)=>{
+                    const idContracts = arrays[0], nims = arrays[1], idDosen = arrays[2], idSubjects = arrays[3];
+                    if (idContracts.includes(contract)) resolve(`Kontrak dengan ID ${contract} sudah ada.`);
+                    else if (!nims.includes(nim)) resolve(`Tidak ada mahasiswa dengan NIM ${nim}.`);
+                    else if (!idDosen.includes(lecturer)) resolve(`Tidak ada dosen dengan ID ${lecturer}.`);
+                    else if (!idSubjects.includes(subject)) resolve(`Tidak ada matakuliah dengan ID ${subject}.`);
+                    else {
+                        info = info.join(', ');
+                        this.db.run(`INSERT INTO kontrak VALUES (${info});`);
+                        resolve(this.db);
+                    }
+                });
                 break;
             case 'del':
                 break;
         }
+    }
+
+    getTable(resolve=()=>{}, reject=()=>{}, id='', table='', header=[]){
+        this.db.all(`SELECT * FROM ${table} ORDER BY ${id};`,(err,rows)=>{
+            if (err) reject(err);
+            // instantiate table
+            let table = new Table({
+                head: header
+            });
+            // add table content based on result of query
+            table.push.apply(table,rows.map(row=>Object.keys(row).map(key=>row[key])));
+            resolve(table.toString());
+        });
+    }
+
+    getRecord(resolve=()=>{}, reject=()=>{}, id='', value='', table='', header=[], context=''){
+        this.db.all(`SELECT * FROM ${table} WHERE ${id}=?`,value,(err,rows)=>{
+            if (err) reject(err);
+            if (rows.length==0){
+                const tbl = table.replace(table[0],table[0].toUpperCase());
+                resolve(`${tbl} dengan ${header[0]} ${value} tidak ditemukan.`);
+            }else{
+                const arrStr = header;
+                const str = decorator(context) + Query.generateInfo(arrStr, rows);
+                resolve(str);
+            }
+        });
+    }
+
+    getId(res=()=>{},rej=()=>{},id='',table=''){
+        this.db.all(`SELECT ${id} FROM ${table} ;`, (e,rows)=>{
+            if (e) rej(e);
+            console.log(rows);
+            const ids = rows.map(x=>Object.keys(x).map(key=>x[key])[0]);
+            res(ids);
+        })
     }
 
     static generateInfo(arrStr,rows){

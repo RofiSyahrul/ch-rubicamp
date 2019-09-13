@@ -11,7 +11,7 @@ export class Model extends EventEmitter {
     readData(table=''){
         this.promise = new Promise((resolve,reject)=>{
             this.db.serialize(()=>{
-                this.query[table.toLowerCase()](resolve);
+                this.query[table.toLowerCase()](resolve,reject);
             })
         });
         this.emit('tableLoaded',table);
@@ -20,9 +20,18 @@ export class Model extends EventEmitter {
     searchData(table='',id=''){
         this.promise = new Promise((resolve,reject)=>{
             this.db.serialize(()=>{
-                this.query[table.toLowerCase()](resolve,'search',id);
-            })
-        })
+                this.query[table.toLowerCase()](resolve,reject,'search',id);
+            });
+        });
         this.emit('recordFound',table);
+    }
+
+    addRecord(table='',info=[]){
+        this.promise = new Promise((resolve,reject)=>{
+            this.db.serialize(()=>{
+                this.query[table.toLowerCase()](resolve,reject,'add',info);
+            });
+        });
+        this.emit('recordAdded',table);
     }
 }
