@@ -34,4 +34,13 @@ export class Model extends EventEmitter {
         });
         this.emit('recordAdded',table);
     }
+
+    deleteRecord(table='',id=''){
+        this.promise = new Promise((resolve,reject) => {
+            this.db.serialize(() => {
+                this.query[table.toLowerCase()](resolve,reject,'del',id);
+            });
+        });
+        this.emit('recordDeleted',table,id);
+    }
 }

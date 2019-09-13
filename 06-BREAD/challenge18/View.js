@@ -4,9 +4,10 @@ export class View extends EventEmitter {
     constructor(model,rl) {
         super();
         this.model = model;
-        this.model.on('tableLoaded',table=>this.loadTable(table));
-        this.model.on('recordFound',table=>this.showRecord(table));
-        this.model.on('recordAdded',table=>this.addRecord(table));
+        this.model.on('tableLoaded',table=>this.loadTable(table))
+        .on('recordFound',table=>this.showRecord(table))
+        .on('recordAdded',table=>this.addRecord(table))
+        .on('recordDeleted', (table,id) => this.deleteRecord(table,id));
         this.rl = rl;
         // this.rl.on('line',answer=>{
         //     this.emit('showMenu',answer);
@@ -63,6 +64,10 @@ export class View extends EventEmitter {
                                 console.log('Lengkapi data di bawah ini:');
                                 this.emit('addData', key);
                                 break;
+                            case 4:
+                                console.log(this.decorator);
+                                this.emit('deleteData', key);
+                                break;
                             case 5: this.emit('showMenu'); break; // back to main menu
                             default: console.log('Masukan salah.'); this.emit('showMenu',key);
                         }
@@ -108,8 +113,36 @@ export class View extends EventEmitter {
                 // So, 'obj' is a string object, instead of a database object.
                 console.log(obj);
                 // Consequently, this app asks again to the user to input added record.
+                console.log('Lengkapi data di bawah ini:');
                 this.emit('addData',table);
             }
         });
+    }
+
+    deleteRecord(table='', id=''){
+        this.model.promise.then(obj => {
+            if (obj.toString()==='[object Database]'){
+                // Record was deleted from 'table' in database and 'obj' is a database object.
+                // So, it's time to update 'db' property of model with 'obj'
+                this.model.db = obj;
+                const idKey = ((tbl)=>{
+                    switch(tbl){
+                        case 'Mahasiswa': return 'NIM';
+                        case 'Jurusan': return 'Kode';
+                        default: return 'ID';
+                    }
+                })(table);
+                console.log(`${table} dengan ${idKey} ${id} telah dihapus.`)
+                // and then show new table
+                this.emit('showData',table);
+            }else{
+                // Record doesn't meet the conditions.
+                // So, 'obj' is a string object, instead of a database object.
+                console.log(obj);
+                // Consequently, this app asks again to the user to input deleted record.
+                console.log(this.decorator);
+                this.emit('deleteData', table);
+            }
+        })
     }
 }

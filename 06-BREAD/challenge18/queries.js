@@ -36,6 +36,7 @@ export class Query {
                 });
                 break;
             case 'del':
+                this.removeRecord(resolve, reject, 'nim', args[0], 'mahasiswa', 'NIM');
                 break;
         }
     }
@@ -46,7 +47,7 @@ export class Query {
                 this.getTable(resolve,reject,'id_jurusan','jurusan',['Kode','Jurusan']);
                 break;
             case 'search':
-                this.getRecord(resolve, reject, 'id_jurusan', args[0], 'jurusan', ['Kode jurusan','Nama jurusan'], 'Department');
+                this.getRecord(resolve, reject, 'id_jurusan', args[0], 'jurusan', ['Kode','Nama jurusan'], 'Department');
                 break;
             case 'add':
                 let info = args[0];
@@ -64,6 +65,7 @@ export class Query {
                 });
                 break;
             case 'del':
+                this.removeRecord(resolve, reject, 'id_jurusan', args[0], 'jurusan', 'kode');
                 break;
         }
     }
@@ -92,6 +94,7 @@ export class Query {
                 });
                 break;
             case 'del':
+                this.removeRecord(resolve, reject, 'id_dosen', args[0], 'dosen', 'ID');
                 break;
         }
     }
@@ -120,6 +123,7 @@ export class Query {
                 });
                 break;
             case 'del':
+                this.removeRecord(resolve, reject, 'id_matakuliah', args[0], 'matakuliah', 'ID');
                 break;
         }
     }
@@ -158,6 +162,7 @@ export class Query {
                 });
                 break;
             case 'del':
+                this.removeRecord(resolve, reject, 'id_kontrak', args[0], 'kontrak', 'ID');
                 break;
         }
     }
@@ -182,8 +187,7 @@ export class Query {
                 const tbl = table.replace(table[0],table[0].toUpperCase());
                 resolve(`${tbl} dengan ${header[0]} ${value} tidak ditemukan.`);
             }else{
-                const arrStr = header;
-                const str = decorator(context) + Query.generateInfo(arrStr, rows);
+                const str = decorator(context) + Query.generateInfo(header, rows);
                 resolve(str);
             }
         });
@@ -192,9 +196,21 @@ export class Query {
     getId(res=()=>{},rej=()=>{},id='',table=''){
         this.db.all(`SELECT ${id} FROM ${table} ;`, (e,rows)=>{
             if (e) rej(e);
-            console.log(rows);
             const ids = rows.map(x=>Object.keys(x).map(key=>x[key])[0]);
             res(ids);
+        })
+    }
+
+    removeRecord(resolve = ()=>{}, reject = ()=>{}, id='', value='', table='', idHead=''){
+        // create promise to get existing id from the table
+        const getIds = new Promise((res,rej)=>this.getId(res,rej,id,table));
+        getIds.then(ids => {
+            value = parseInt(value);
+            if (!ids.includes(value)) resolve(`Tidak ada ${table} dengan ${idHead} ${value}.`);
+            else{
+                this.db.run(`DELETE FROM ${table} WHERE ${id}=?`,value);
+                resolve(this.db);
+            }
         })
     }
 
