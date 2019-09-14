@@ -8,11 +8,20 @@ export class Model extends EventEmitter {
         this.query = new Query(this.db);
     }
 
+    validateAccount(username='', password=''){
+        this.promise = new Promise((resolve,reject) => {
+            this.db.serialize(() => {
+                this.query.account(resolve,reject,username,password);
+            });
+        });
+        this.emit('accountValidated');
+    }
+
     readData(table=''){
         this.promise = new Promise((resolve,reject)=>{
             this.db.serialize(()=>{
                 this.query[table.toLowerCase()](resolve,reject);
-            })
+            });
         });
         this.emit('tableLoaded',table);
     }

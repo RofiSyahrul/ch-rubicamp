@@ -1,16 +1,17 @@
 String.prototype.isNumber = function(){
-    return Number(this).toString()!=='NaN'
-}
+    return Number(this).toString()!=='NaN';
+};
 String.prototype.convert = function(){
     if (this.isNumber()) return Number(this);
     return '"'+this+'"';
-}
+};
 // adapted from https://alexatnet.com/model-view-controller-mvc-in-javascript/
 export class Controller {
     constructor(model, view) {
         this.model = model;
         this.view = view;
-        this.view.on('showMenu', table => this.view.showMenu(table))
+        this.view.on('validate', (username,password) => this.validateAccount(username,password))
+        .on('showMenu', table => this.view.showMenu(table))
         .on('showData', table => this.readData(table))
         .on('getData', table => this.searchData(table))
         .on('addData', table => this.addRecord(table))
@@ -19,6 +20,10 @@ export class Controller {
         this.rl.on('line',answer=>this.readLine(answer));
     }
 
+    validateAccount (username='',password=''){
+        this.model.validateAccount(username,password);
+    }
+    
     readData(table=''){
         this.model.readData(table);
     }

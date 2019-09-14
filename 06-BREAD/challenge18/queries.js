@@ -8,6 +8,27 @@ export class Query {
         this.db = database;
     }
     
+    account(resolve,reject,username='',password=''){
+        const getUsernames = new Promise((res,rej) => this.getId(res,rej,'username','account'));
+        const getPasswords = new Promise((res,rej) => this.getId(res,rej,'passwd','account', ['username',username]));
+        const getRoles = new Promise((res,rej) => this.getId(res, rej, 'role', 'account', ['username',username]));
+        Promise.all([getUsernames, getPasswords, getRoles]).then(existing => {
+            const usernames = existing[0].map(x=>x.toLowerCase());
+            const checkUsername = usernames.includes(username.toLowerCase());
+            if (!checkUsername) reject(`username ${username} tidak terdaftar.`);
+            else{
+                const passwords = existing[1];
+                const role = existing[2][0].toUpperCase();
+                const checkPassword = passwords.includes(password);
+                if (!checkPassword) reject('password salah!!');
+                else {
+                    const result = {username: username, role: role};
+                    resolve(result);
+                }
+            }
+        }).catch(reason => {reject(reason);});
+    }
+
     mahasiswa(resolve,reject,action='read',...args){
         switch(action){
             case 'read':
@@ -26,14 +47,14 @@ export class Query {
                 // call all promises and add 'info' to 'mahasiswa' table if it meets the conditions.
                 Promise.all([getIdJurusan,getNim]).then((arrays)=>{
                     const deptIds = arrays[0], nims = arrays[1];
-                    if (!deptIds.includes(dept)) resolve(`Tidak ada jurusan dengan ID ${dept}.`);
-                    else if (nims.includes(nim)) resolve(`NIM ${nim} sudah ada.`);
+                    if (!deptIds.includes(dept)) reject(`Tidak ada jurusan dengan ID ${dept}.`);
+                    else if (nims.includes(nim)) reject(`NIM ${nim} sudah ada.`);
                     else {
                         info = info.join(', ');
                         this.db.run(`INSERT INTO mahasiswa VALUES (${info});`);
                         resolve(this.db);
                     }
-                });
+                }).catch(reason => {reject(reason);});
                 break;
             case 'del':
                 this.removeRecord(resolve, reject, 'nim', args[0], 'mahasiswa', 'NIM');
@@ -56,13 +77,13 @@ export class Query {
                 const getIdJurusan = new Promise((res,rej)=>this.getId(res,rej,'id_jurusan','jurusan'));
                 // call promise and add 'info' to 'jurusan' table if it meets the condition.
                 getIdJurusan.then((deptIds)=>{
-                    if (deptIds.includes(dept)) resolve(`Jurusan dengan kode ${dept} sudah ada.`);
+                    if (deptIds.includes(dept)) reject(`Jurusan dengan kode ${dept} sudah ada.`);
                     else {
                         info = info.join(', ');
                         this.db.run(`INSERT INTO jurusan VALUES (${info});`);
                         resolve(this.db);
                     }
-                });
+                }).catch(reason => {reject(reason);});
                 break;
             case 'del':
                 this.removeRecord(resolve, reject, 'id_jurusan', args[0], 'jurusan', 'kode');
@@ -85,13 +106,13 @@ export class Query {
                 const getIdDosen = new Promise((res,rej)=>this.getId(res,rej,'id_dosen','dosen'));
                 // call promise and add 'info' to 'dosen' table if it meets the condition.
                 getIdDosen.then((lectIds)=>{
-                    if (lectIds.includes(lecturer)) resolve(`Dosen dengan ID ${lecturer} sudah ada.`);
+                    if (lectIds.includes(lecturer)) reject(`Dosen dengan ID ${lecturer} sudah ada.`);
                     else {
                         info = info.join(', ');
                         this.db.run(`INSERT INTO dosen VALUES (${info});`);
                         resolve(this.db);
                     }
-                });
+                }).catch(reason => {reject(reason);});
                 break;
             case 'del':
                 this.removeRecord(resolve, reject, 'id_dosen', args[0], 'dosen', 'ID');
@@ -114,13 +135,13 @@ export class Query {
                 const getIdSubject = new Promise((res,rej)=>this.getId(res,rej,'id_matakuliah','matakuliah'));
                 // call promise and add 'info' to 'matakuliah' table if it meets the condition.
                 getIdSubject.then((idSubjects)=>{
-                    if (idSubjects.includes(subject)) resolve(`Matakuliah dengan ID ${subject} sudah ada.`);
+                    if (idSubjects.includes(subject)) reject(`Matakuliah dengan ID ${subject} sudah ada.`);
                     else {
                         info = info.join(', ');
                         this.db.run(`INSERT INTO matakuliah VALUES (${info});`);
                         resolve(this.db);
                     }
-                });
+                }).catch(reason => {reject(reason);});
                 break;
             case 'del':
                 this.removeRecord(resolve, reject, 'id_matakuliah', args[0], 'matakuliah', 'ID');
@@ -150,16 +171,16 @@ export class Query {
                 // call all promises and add 'info' to 'kontrak' table if it meets the conditions.
                 Promise.all([getIdContract,getNim,getIdDosen,getIdSubject]).then((arrays)=>{
                     const idContracts = arrays[0], nims = arrays[1], idDosen = arrays[2], idSubjects = arrays[3];
-                    if (idContracts.includes(contract)) resolve(`Kontrak dengan ID ${contract} sudah ada.`);
-                    else if (!nims.includes(nim)) resolve(`Tidak ada mahasiswa dengan NIM ${nim}.`);
-                    else if (!idDosen.includes(lecturer)) resolve(`Tidak ada dosen dengan ID ${lecturer}.`);
-                    else if (!idSubjects.includes(subject)) resolve(`Tidak ada matakuliah dengan ID ${subject}.`);
+                    if (idContracts.includes(contract)) reject(`Kontrak dengan ID ${contract} sudah ada.`);
+                    else if (!nims.includes(nim)) reject(`Tidak ada mahasiswa dengan NIM ${nim}.`);
+                    else if (!idDosen.includes(lecturer)) reject(`Tidak ada dosen dengan ID ${lecturer}.`);
+                    else if (!idSubjects.includes(subject)) reject(`Tidak ada matakuliah dengan ID ${subject}.`);
                     else {
                         info = info.join(', ');
                         this.db.run(`INSERT INTO kontrak VALUES (${info});`);
                         resolve(this.db);
                     }
-                });
+                }).catch(reason => {reject(reason);});
                 break;
             case 'del':
                 this.removeRecord(resolve, reject, 'id_kontrak', args[0], 'kontrak', 'ID');
@@ -185,7 +206,7 @@ export class Query {
             if (err) reject(err);
             if (rows.length==0){
                 const tbl = table.replace(table[0],table[0].toUpperCase());
-                resolve(`${tbl} dengan ${header[0]} ${value} tidak ditemukan.`);
+                reject(`${tbl} dengan ${header[0]} ${value} tidak ditemukan.`);
             }else{
                 const str = decorator(context) + Query.generateInfo(header, rows);
                 resolve(str);
@@ -193,12 +214,19 @@ export class Query {
         });
     }
 
-    getId(res=()=>{},rej=()=>{},id='',table=''){
-        this.db.all(`SELECT ${id} FROM ${table} ;`, (e,rows)=>{
-            if (e) rej(e);
-            const ids = rows.map(x=>Object.keys(x).map(key=>x[key])[0]);
-            res(ids);
-        })
+    getId(res=()=>{},rej=()=>{},id='',table='',cond=[]){
+        if (cond.length===2){
+            this.db.all(`SELECT ${id} FROM ${table} WHERE LOWER(${cond[0]})=?`, cond[1].toLowerCase(), (e,rows)=>{
+                if (e) rej(e);
+                res(rows.map(x=>Object.keys(x).map(key=>x[key])[0]));
+            });
+        }else{
+            this.db.all(`SELECT ${id} FROM ${table} ;`, (e,rows)=>{
+                if (e) rej(e);
+                const ids = rows.map(x=>Object.keys(x).map(key=>x[key])[0]);
+                res(ids);
+            });
+        }
     }
 
     removeRecord(resolve = ()=>{}, reject = ()=>{}, id='', value='', table='', idHead=''){
@@ -206,12 +234,14 @@ export class Query {
         const getIds = new Promise((res,rej)=>this.getId(res,rej,id,table));
         getIds.then(ids => {
             value = parseInt(value);
-            if (!ids.includes(value)) resolve(`Tidak ada ${table} dengan ${idHead} ${value}.`);
+            if (!ids.includes(value)) reject(`Tidak ada ${table} dengan ${idHead} ${value}.`);
             else{
-                this.db.run(`DELETE FROM ${table} WHERE ${id}=?`,value);
+                this.db.run(`DELETE FROM ${table} WHERE ${id}=?`,value, e => {
+                    if (e) reject(e);
+                });
                 resolve(this.db);
             }
-        })
+        });
     }
 
     static generateInfo(arrStr,rows){
