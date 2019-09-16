@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>BREAD - JSON by: Rofi</title>
+        <link rel="icon" href="rho-pi.ico" type="image/ico">
+        <meta charset="UTF-8">
+        <meta name="description" content="Practicing BREAD and JSON using ExpressJS Framework">
+        <meta name="keywords" content="HTML, CSS, JavaScript, ExpressJS, BREAD, CRUD, JSON, ejs">
+        <meta name="author" content="Syahrul Rofi">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" 
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    </head>
+    <body>
+        <div class="container">
+            <h1>BREAD (Browse, Read, Edit, Add, Delete)</h1>
+            <h2>Filters</h2>
+            <!-- Filter form -->
+            <form id="filter" action="" method="GET" style="margin-bottom: 5px">
+                <!-- ID, String, Integer and Float Forms -->
+                <%_ forms.forEach((form,index) => { -%>
+                    <div class="form-group row">
+                        <div class="col-sm-2 form-check">
+                            <input class="form-check-input" type="checkbox" id="check<%=form%>" name="checkBox" value="<%=form%>" aria-label="<%=form%>" form="filter" <%=typeof checked === 'undefined' ? '' : checked.includes(form) ? 'checked' : ''%> >
+                            <label class="form-check-label" for="check<%=form%>"><%=form%></label>
+                        </div>
+                        <div class="col-sm-10">
+                            <%_ if (form==='Float'){ -%>
+                                <input type="<%=formTypes[index]%>" class="form-control" id="<%=form%>" name="<%=form%>" value="" placeholder="<%=form%>"  form="filter" step="0.0001">
+                            <%_ } else{-%>
+                                <input type="<%=formTypes[index]%>" class="form-control" id="<%=form%>" name="<%=form%>" value="" placeholder="<%=form%>"  form="filter">
+                            <%_ } -%>
+                        </div>
+                    </div>
+                <%_ }); -%>
+                <!-- Date -->
+                <div class="form-group row">
+                    <div class="col-sm-2 form-check">
+                        <input class="form-check-input" type="checkbox" id="checkDate" name="checkBox" value="Date" aria-label="Date"  form="filter" <%=typeof checked === 'undefined' ? '' : checked.includes('Date') ? 'checked' : ''%> >
+                        <label class="form-check-label" for="checkDate">Date</label>
+                    </div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="startDate" name="startDate" value="<%=checked==undefined ? '' : checked.includes('Date') ? query.startDate : ''%>" placeholder="start date" onfocus="(this.type='date')" style="margin-bottom: 5px"  form="filter">
+                        to
+                        <input type="text" class="form-control" id="endDate" name="endDate" value="<%=checked==undefined ? '' : checked.includes('Date') ? query.endDate : ''%>" placeholder="end date" onfocus="(this.type='date')" style="margin-top: 5px"  form="filter">
+                    </div>
+                </div>
+                <!-- Boolean -->
+                <div class="form-group row">
+                    <div class="col-sm-2 form-check">
+                        <input class="form-check-input" type="checkbox" id="checkBoolean" name="checkBox" value="Boolean" aria-label="Boolean" form="filter" <%=typeof checked === 'undefined' ? '' : checked.includes('Boolean') ? 'checked' : ''%> >
+                        <label class="form-check-label" for="checkBoolean">Boolean</label>
+                    </div>
+                    <div class="col-sm-10">
+                        <select name="Boolean" id="Boolean"  form="filter" class="form-control">
+                            <option disabled <%=checked==undefined ? 'selected' : checked.includes('Boolean') ? '' : 'selected'%>>Choose the boolean...</option>
+                            <option value="true" <%=checked==undefined ? '' : checked.includes('Boolean') ? query.Boolean==='true' ? 'selected' : '' : ''%>>true</option>
+                            <option value="false" <%=checked==undefined ? '' : checked.includes('Boolean') ? query.Boolean==='false' ? 'selected' : '' : ''%>>false</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Search button -->
+                <div class="form-group-row">
+                    <button type="submit" name="button" class="btn btn-primary">Search</button>
+                </div>
+            </form>
+            <!-- TABLE -->
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <%_ colNames.forEach(col => { -%>
+                            <th scope="col"><%=col%></th>
+                        <%_ }); -%>
+                    </tr>
+                </thead>
+                <tbody>
+                    <%_ data.forEach((row,id) => { -%>
+                        <tr>
+                            <th scope="row"><%= id+1 %></th>
+                            <%_ keys.forEach((key,index) => { -%>
+                                <td><%= funcs[index](row[key]) %></td>
+                            <%_ }); -%>
+                            <td>
+                                <a role="button" class="btn btn-success" href="/edit/<%=id%>" style="margin-right:5px">Edit</a>
+                                <a role="button" class="btn btn-danger" href="/delete/<%=id%>">Delete</a>
+                            </td>
+                        </tr>
+                    <%_ }); -%>
+                </tbody>
+            </table>
+            <a role="button" class="btn btn-primary" href="/add" style="margin-top: 5px">Add</a>
+        </div>
+    </body>
+</html>
