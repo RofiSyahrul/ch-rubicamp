@@ -51,6 +51,7 @@ function getNumOfPages(database,conditional=''){
 }
 
 function parseDate(date){
+    if (date.length===0) return 'kosong';
     const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     date = new Date(date);
     return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
