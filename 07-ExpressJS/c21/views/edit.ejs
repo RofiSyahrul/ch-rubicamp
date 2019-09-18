@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title><%= title %></title>
+        <!-- <link rel="icon" href="rho-pi.ico" type="image/ico"> -->
+        <meta charset="UTF-8">
+        <meta name="keywords" content="HTML, CSS, JavaScript, ExpressJS, BREAD, CRUD, JSON, ejs">
+        <meta name="author" content="Syahrul Rofi">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" 
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    </head>
+    <body>
+        <div class="container">
+            <h1>BREAD (Browse, Read, Edit, Add, Delete)</h1>
+            <h2>Edit Data</h2>
+            <!-- Form -->
+            <form id="edit<%=id%>" action="" method="POST" style="margin-bottom: 5px">
+                <!-- ID -->
+                <div class="form-group row">
+                    <div class="col-sm-2">
+                        <label class="form-label" for="ID">ID</label>
+                    </div>
+                    <div class="col-sm-10">
+                        <input type="number" class="form-control" id="ID" name="id" value="<%=id%>" placeholder="ID"  form="edit<%=id%>" disabled>
+                    </div>
+                </div>
+                <!-- String, Integer and Float Forms -->
+                <%_ forms.forEach((form,index) => { -%>
+                    <div class="form-group row">
+                        <div class="col-sm-2">
+                            <label class="form-label" for="<%=form%>"><%=form%></label>
+                        </div>
+                        <div class="col-sm-10">
+                            <input type="<%=formTypes[index]%>" class="form-control" id="<%=form%>" name="<%=colPg[index+1]%>" value="<%=values[colPg[index+1]]%>" placeholder="<%=form%>" form="edit<%=id%>" required <%= form=='Float' ?'step=0.0001' : ''%> >
+                        </div>
+                    </div>
+                <%_ }); -%>
+                <!-- Date -->
+                <div class="form-group row">
+                    <div class="col-sm-2">
+                        <label class="form-label" for="Date">Date</label>
+                    </div>
+                    <div class="col-sm-10">
+                        <input type="date" class="form-control" id="Date" name="dt" value="<%=dateVal%>" form="edit<%=id%>">
+                    </div>
+                </div>
+                <!-- Boolean -->
+                <div class="form-group row">
+                    <div class="col-sm-2">
+                        <label class="form-label" for="Boolean">Boolean</label>
+                    </div>
+                    <div class="col-sm-10">
+                        <select name="bl" id="Boolean"  form="edit<%=id%>" class="form-control">
+                            <option disabled>Choose the boolean...</option>
+                            <option value="true" <%= values.bl=='true' ? 'selected' : '' %>>true</option>
+                            <option value="false" <%= values.bl=='false' ? 'selected' : '' %> >false</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Update button -->
+                <div class="form-group-row">
+                    <button type="submit" name="button" class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </body>
+</html>

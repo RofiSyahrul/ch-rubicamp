@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title><%= title %></title>
+        <meta charset="UTF-8">
+        <meta name="keywords" content="HTML, CSS, JavaScript, ExpressJS, BREAD, CRUD, SQLite, ejs">
+        <meta name="author" content="Syahrul Rofi">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" 
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    </head>
+    <body>
+        <div class="container">
+            <h1>BREAD (Browse, Read, Edit, Add, Delete)</h1>
+            <h2>Add Data</h2>
+            <!-- Form -->
+            <form id="add" action="" method="POST" style="margin-bottom: 5px">
+                <!-- String, Integer and Float Forms -->
+                <%_ forms.forEach((form,index) => { -%>
+                    <div class="form-group row">
+                        <div class="col-sm-2">
+                            <label class="form-label" for="<%=form%>"><%=form%></label>
+                        </div>
+                        <div class="col-sm-10">
+                            <input type="<%=formTypes[index]%>" class="form-control" id="<%=form%>" name="<%=colPg[index+1]%>" value="" placeholder="<%=form%>" form="add" required <%= form=='Float' ?'step=0.0001 onfocus=(this.value=Number((21*Math.random()-10).toFixed(4)))' : ''%> >
+                        </div>
+                    </div>
+                <%_ }); -%>
+                <!-- Date -->
+                <div class="form-group row">
+                    <div class="col-sm-2">
+                        <label class="form-label" for="Date">Date</label>
+                    </div>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="Date" name="dt" value="" placeholder="Date" onfocus="(this.type='date')" form="add">
+                    </div>
+                </div>
+                <!-- Boolean -->
+                <div class="form-group row">
+                    <div class="col-sm-2">
+                        <label class="form-label" for="Boolean">Boolean</label>
+                    </div>
+                    <div class="col-sm-10">
+                        <select name="bl" id="Boolean"  form="add" class="form-control">
+                            <option disabled selected>Choose the boolean...</option>
+                            <option value="true">true</option>
+                            <option value="false">false</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Save button -->
+                <div class="form-group-row">
+                    <button type="submit" name="button" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </body>
+</html>
