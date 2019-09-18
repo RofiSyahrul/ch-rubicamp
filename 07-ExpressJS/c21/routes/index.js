@@ -75,7 +75,7 @@ const title = "BREAD - PostgreSQL by: Rofi";
 const colNames = ["ID", "String", "Integer", "Float", "Date", "Boolean"];
 const colPg = ["id", "str", "intgr", "flt", "dt", "bl"];
 const funcs = [parseInt, str => str, parseInt, parseFloat, parseDate, bl => bl];
-const limit = 3;
+const limit = 2;
 
 /* GET home page. */
 router.get("/", (req, res) => {
