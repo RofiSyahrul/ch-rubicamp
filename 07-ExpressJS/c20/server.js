@@ -162,7 +162,8 @@ app.get('/delete/:id', (req,res) => {
         // get page number of id
         const pageNum = getNumOfPages(db,`WHERE ID<=${id}`);
         const pageNumbers = getNumOfPages(db);
-        Promise.all([pageNum,pageNumbers]).then((num,lastPage) => {
+        Promise.all([pageNum,pageNumbers]).then(pages => {
+            const num = pages[0], lastPage = pages[1];
             res.redirect(`/?page=${num<=lastPage ? num : lastPage}`);
         });
     });
