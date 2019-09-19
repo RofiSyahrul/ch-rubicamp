@@ -157,7 +157,7 @@
             </li>
           <%_} -%>
           <!-- last -->
-          <%_ if (current < numOfPages-3) { -%>
+          <%_ if (current < numOfPages-2) { -%>
             <li class="page-item">
               <a href="<%=url.includes('?') ? url.replace(`page=${current}`,`page=${numOfPages}`) : `?page=${numOfPages}`%>" class="page-link">Last</a>
             </li>

@@ -3,8 +3,17 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const { Pool } = require("pg");
 
-const indexRouter = require('./routes/index');
+const pool = new Pool({
+  user: "postgres",
+  host: "localhost",
+  database: "crud",
+  password: "12345",
+  port: 5432
+});
+
+const indexRouter = require('./routes/index')(pool);
 const usersRouter = require('./routes/users');
 
 const app = express();
@@ -13,12 +22,13 @@ const app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
+// parsing
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-// app.use(express.static(path.join(__dirname, 'public')));
 
+// use router
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
