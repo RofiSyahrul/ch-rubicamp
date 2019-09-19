@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title><%= title %></title>
+  <meta charset="UTF-8">
+  <meta name="description" content="Practicing BREAD and MongoDB using ExpressJS Framework">
+  <meta name="keywords" content="HTML, CSS, JavaScript, ExpressJS, BREAD, CRUD, MongoDB, ejs">
+  <meta name="author" content="Syahrul Rofi">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+
+<body>
+  <div class="container">
+    <h1>BREAD (Browse, Read, Edit, Add, Delete)</h1>
+    <h2>Filters</h2>
+    <!-- Filter form -->
+    <form id="filter" action="" method="GET" style="margin-bottom: 5px">
+      <!-- String, Integer and Float Forms -->
+      <%_ forms.forEach((form,index) => { -%>
+      <div class="form-group row">
+        <!-- Checkbox & Label-->
+        <div class="col-sm-2 custom-control custom-checkbox">
+          <input class="custom-control-input" type="checkbox" id="check<%=form%>" name="checkBox" value="<%=form%>"
+            aria-label="<%=form%>" form="filter" <%= checked ? (checked.includes(form) ? 'checked' : '' ) : '' %>>
+          <label class="custom-control-label" for="check<%=form%>"><%=form%></label>
+        </div>
+        <!-- Input -->
+        <div class="col-sm-10">
+          <input type="<%=formTypes[index]%>" class="form-control" id="<%=form%>" name="<%=form%>"
+            value="<%= checked ? (checked.includes(form) ? query[form] : '' ) : '' %>" placeholder="<%=form%>"
+            form="filter" <%= form=='Float' ?'step=0.0001' : ''%>>
+        </div>
+      </div>
+      <%_ }); -%>
+      <!-- Date -->
+      <div class="form-group row">
+        <!-- Checkbox & Label-->
+        <div class="col-sm-2 custom-control custom-checkbox">
+          <input class="custom-control-input" type="checkbox" id="checkDate" name="checkBox" value="Date"
+            aria-label="Date" form="filter" <%=checked ? (checked.includes('Date') ? 'checked' : '' ) : ''%>>
+          <label class="custom-control-label" for="checkDate">Date</label>
+        </div>
+        <!-- Input -->
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="startDate" name="startDate"
+            value="<%= checked ? (checked.includes('Date') ? query.startDate : '' ) : '' %>" placeholder="start date"
+            onfocus="(this.type='date')" style="margin-bottom: 5px" form="filter">
+          to
+          <input type="text" class="form-control" id="endDate" name="endDate"
+            value="<%= checked ? (checked.includes('Date') ? query.endDate : '' ) : ''%>" placeholder="end date"
+            onfocus="(this.type='date')" style="margin-top: 5px" form="filter">
+        </div>
+      </div>
+      <!-- Boolean -->
+      <div class="form-group row">
+        <!-- Checkbox & Label-->
+        <div class="col-sm-2 custom-control custom-checkbox">
+          <input class="custom-control-input" type="checkbox" id="checkBoolean" name="checkBox" value="Boolean"
+            aria-label="Boolean" form="filter" <%=checked ? (checked.includes('Boolean') ? 'checked' : '' ) : ''%>>
+          <label class="custom-control-label" for="checkBoolean">Boolean</label>
+        </div>
+        <!-- Input -->
+        <div class="col-sm-10">
+          <select name="Boolean" id="Boolean" form="filter" class="form-control">
+            <option disabled <%=checked ? (checked.includes('Boolean') ? '' : 'selected' ) : 'selected'%>>Choose the
+              boolean...</option>
+            <option value="true"
+              <%=checked ? (checked.includes('Boolean') && query.Boolean=='true' ? 'selected' : '' ) : ''%>>true
+            </option>
+            <option value="false"
+              <%=checked ? (checked.includes('Boolean') && query.Boolean=='false' ? 'selected' : '' ) : ''%>>false
+            </option>
+          </select>
+        </div>
+      </div>
+      <!-- Hidden input for page number -->
+      <div class="form-group row">
+        <input type="hidden" class="form-control" name="page" value="1">
+      </div>
+      <!-- Search button -->
+      <div class="form-group-row">
+        <button type="submit" name="button" class="btn btn-primary">Search</button>
+      </div>
+    </form>
+    <!-- TABLE -->
+    <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <%_ fields.forEach(field => { -%>
+          <th scope="col"><%=field%></th>
+          <%_ }); -%>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <%_ data.forEach(row => { -%>
+        <tr>
+          <%_ fields.forEach((field,i) => { -%>
+          <td><%= funcs[i](row[field]) %></td>
+          <%_ }); -%>
+          <td>
+            <a role="button" class="btn btn-success" href="/edit/<%=row._id%>" style="margin-right:5px">Edit</a>
+            <a role="button" class="btn btn-danger" href="/delete/<%=row._id%>"
+              onclick="javascript: return confirm('Are you sure to delete this?')">Delete</a>
+          </td>
+        </tr>
+        <%_ }); -%>
+      </tbody>
+    </table>
+
+    <!-- Navbar for table pagination -->
+    <%_ if (numOfPages>1){ -%>
+    <!-- adapted from: https://evdokimovm.github.io/javascript/nodejs/mongodb/pagination/expressjs/ejs/bootstrap/2017/08/20/create-pagination-with-nodejs-mongodb-express-and-ejs-step-by-step-from-scratch.html -->
+    <nav aria-label="Table page">
+      <ul class="pagination text-center">
+        <!-- first -->
+        <%_ if (current>4) { -%>
+        <li class="page-item">
+          <a href="<%=url.includes('?') ? url.replace(`page=${current}`,`page=1`) : `?page=1`%>"
+            class="page-link">First</a>
+        </li>
+        <%_} -%>
+        <!-- previous -->
+        <%_ if (current>1) { -%>
+        <li class="page-item">
+          <a href="<%=url.includes('?') ? url.replace(`page=${current}`,`page=${current-1}`) : `?page=${current-1}`%>"
+            class="page-link">Previous</a>
+        </li>
+        <%_} -%>
+        <!-- page numbers and ellipsises-->
+        <%_ let i = current>4 ? current-2 : 1; -%>
+        <!-- left ellipsis -->
+        <%_ if (i!==1) { -%>
+        <li class="page-item">
+          <a href="<%=url.includes('?') ? url.replace(`page=${current}`,`page=${current-3}`) : `?page=${current-3}`%>"
+            class="page-link">...</a>
+        </li>
+        <%_ } -%>
+        <%_ for(; i<=current+2 && i<=numOfPages; i++){ -%>
+        <!-- page numbers -->
+        <%_ if (i===current) { -%>
+        <!-- Active page -->
+        <li class="page-item active"><span class="page-link"><%=i%></span></li>
+        <%_ } else{ -%>
+        <!-- Nonactive page -->
+        <li class="page-item"> <a class="page-link"
+            href="<%=url.includes('?') ? url.replace(`page=${current}`,`page=${i}`) : `?page=${i}`%>"><%=i%></a> </li>
+        <%_ } -%>
+        <!-- right ellipsis -->
+        <%_ if (i==current+2 && i < numOfPages-1 ) { -%>
+        <li class="page-item">
+          <a href="<%=url.includes('?') ? url.replace(`page=${current}`,`page=${current+3}`) : `?page=${current+3}`%>"
+            class="page-link">...</a>
+        </li>
+        <%_ } -%>
+        <%_ } -%>
+        <!-- next -->
+        <%_ if (current < numOfPages) { -%>
+        <li class="page-item">
+          <a href="<%=url.includes('?') ? url.replace(`page=${current}`,`page=${current+1}`) : `?page=${current+1}`%>"
+            class="page-link">Next</a>
+        </li>
+        <%_} -%>
+        <!-- last -->
+        <%_ if (current < numOfPages-2) { -%>
+        <li class="page-item">
+          <a href="<%=url.includes('?') ? url.replace(`page=${current}`,`page=${numOfPages}`) : `?page=${numOfPages}`%>"
+            class="page-link">Last</a>
+        </li>
+        <%_} -%>
+      </ul>
+    </nav>
+    <%_ } -%>
+    <!-- add button -->
+    <a role="button" class="btn btn-primary" href="/add" style="margin-top: 5px">Add</a>
+  </div>
+</body>
+
+</html>
